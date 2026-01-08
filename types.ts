@@ -13,6 +13,12 @@ export enum GameStatus {
   VICTORY = 'VICTORY'
 }
 
+export enum Difficulty {
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD'
+}
+
 export type HandType = 'left' | 'right';
 
 // 0: Up, 1: Down, 2: Left, 3: Right, 4: Any (Dot)
