@@ -274,8 +274,8 @@ const GameScene: React.FC<GameSceneProps> = ({
       <EffectComposer multisampling={0}>
         <Bloom
           luminanceThreshold={0.4}
-          intensity={1.0}
-          radius={0.3}
+          intensity={0.8}
+          radius={0.2}
         />
         <Noise opacity={0.05} />
       </EffectComposer>

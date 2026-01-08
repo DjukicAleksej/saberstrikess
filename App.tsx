@@ -24,6 +24,7 @@ const App: React.FC = () => {
     const [audioSrc, setAudioSrc] = useState(SONG_URL);
     const [chart, setChart] = useState<NoteData[]>(DEMO_CHART);
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+    const [isZenMode, setIsZenMode] = useState(false);
 
     // Audio Analysis State
     const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
@@ -68,15 +69,17 @@ const App: React.FC = () => {
     const handleNoteMiss = useCallback((note: NoteData) => {
         setCombo(0);
         setMultiplier(1);
-        setHealth(h => {
-            const newHealth = h - 15;
-            if (newHealth <= 0) {
-                setTimeout(() => endGame(false), 0);
-                return 0;
-            }
-            return newHealth;
-        });
-    }, []);
+        if (!isZenMode) {
+            setHealth(h => {
+                const newHealth = h - 10;
+                if (newHealth <= 0) {
+                    setTimeout(() => endGame(false), 0);
+                    return 0;
+                }
+                return newHealth;
+            });
+        }
+    }, [isZenMode]);
 
     const startGame = async () => {
         if (!isCameraReady) return;
@@ -205,7 +208,7 @@ const App: React.FC = () => {
             />
 
             {/* 3D Canvas */}
-            <Canvas shadows dpr={[1, 2]}>
+            <Canvas shadows dpr={[1, 1.5]}>
                 {gameStatus !== GameStatus.LOADING && (
                     <GameScene
                         gameStatus={gameStatus}
@@ -240,7 +243,9 @@ const App: React.FC = () => {
                                 style={{ width: `${health}%` }}
                             />
                         </div>
-                        <p className="text-xs mt-1 opacity-70">System Integrity</p>
+                        <p className="text-xs mt-1 opacity-70">
+                            {isZenMode ? "ZEN MODE ACTIVE" : "System Integrity"}
+                        </p>
                     </div>
 
                     {/* Score & Combo */}
@@ -318,6 +323,18 @@ const App: React.FC = () => {
                                     />
                                 </label>
                                 {isLoadingAudio && <p className="text-blue-400 text-xs mt-2">Processing Audio...</p>}
+                            </div>
+
+                            <div className="mt-4">
+                                <label className="flex items-center justify-center gap-2 cursor-pointer text-gray-400 hover:text-white transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        checked={isZenMode}
+                                        onChange={(e) => setIsZenMode(e.target.checked)}
+                                        className="w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <span className="text-sm font-bold">ZEN MODE (No Fail)</span>
+                                </label>
                             </div>
 
                         </div>
