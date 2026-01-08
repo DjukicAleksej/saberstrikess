@@ -8,11 +8,13 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Loader, useProgress } from '@react-three/drei';
 import { GameStatus, NoteData } from './types';
-import { DEMO_CHART, SONG_URL, SONG_BPM, HIT_SOUND_URL, generateRandomChart } from './constants';
+import { DEMO_CHART, SONG_URL, SONG_BPM, HIT_SOUND_URL, generateRandomChart, NOTE_SPEED, SPEED_EASY, SPEED_MEDIUM, SPEED_HARD } from './constants';
 import { useMediaPipe } from './hooks/useMediaPipe';
 import GameScene from './components/GameScene';
 import WebcamPreview from './components/WebcamPreview';
-import { Play, RefreshCw, VideoOff, Hand, Sparkles, Upload } from 'lucide-react';
+import ModeSelector from './components/ModeSelector';
+import { Play, RefreshCw, VideoOff, Hand, Sparkles, Upload, Settings } from 'lucide-react';
+import { Difficulty } from './types';
 
 const App: React.FC = () => {
     const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.LOADING);
@@ -24,6 +26,9 @@ const App: React.FC = () => {
     const [audioSrc, setAudioSrc] = useState(SONG_URL);
     const [chart, setChart] = useState<NoteData[]>(DEMO_CHART);
     const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+    // Difficulty State
+    const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.MEDIUM);
     const [isZenMode, setIsZenMode] = useState(false);
 
     // Audio Analysis State
@@ -37,6 +42,18 @@ const App: React.FC = () => {
     // Now getting lastResultsRef from the hook
     const { isCameraReady, handPositionsRef, lastResultsRef, error: cameraError } = useMediaPipe(videoRef);
     const { progress } = useProgress();
+
+    // Derived Note Speed
+    const getNoteSpeed = () => {
+        switch (difficulty) {
+            case Difficulty.EASY: return SPEED_EASY;
+            case Difficulty.HARD: return SPEED_HARD;
+            case Difficulty.MEDIUM:
+            default: return SPEED_MEDIUM;
+        }
+    };
+
+    const noteSpeed = getNoteSpeed();
 
     // Game Logic Handlers
     const handleNoteHit = useCallback((note: NoteData, goodCut: boolean) => {
@@ -219,6 +236,7 @@ const App: React.FC = () => {
                         onNoteHit={handleNoteHit}
                         onNoteMiss={handleNoteMiss}
                         onSongEnd={() => endGame(true)}
+                        noteSpeed={noteSpeed}
                     />
                 )}
             </Canvas>
@@ -281,7 +299,7 @@ const App: React.FC = () => {
                     )}
 
                     {gameStatus === GameStatus.IDLE && (
-                        <div className="bg-black/80 p-12 rounded-3xl text-center border-2 border-blue-500/30 backdrop-blur-xl max-w-lg">
+                        <div className="bg-black/80 p-12 rounded-3xl text-center border-2 border-blue-500/30 backdrop-blur-xl max-w-lg w-full">
                             <div className="mb-6 flex justify-center">
                                 <Sparkles className="w-16 h-16 text-blue-400" />
                             </div>
@@ -304,14 +322,22 @@ const App: React.FC = () => {
                             ) : (
                                 <button
                                     onClick={startGame}
-                                    className="bg-blue-600 hover:bg-blue-500 text-white text-xl font-bold py-4 px-12 rounded-full transition-all transform hover:scale-105 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] flex items-center justify-center mx-auto gap-3"
+                                    className="bg-blue-600 hover:bg-blue-500 text-white text-xl font-bold py-4 px-12 rounded-full transition-all transform hover:scale-105 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] flex items-center justify-center mx-auto gap-3 w-full"
                                 >
                                     <Play fill="currentColor" /> START GAME
                                 </button>
                             )}
 
+                            {/* Mode Selector */}
+                            <ModeSelector
+                                difficulty={difficulty}
+                                setDifficulty={setDifficulty}
+                                isZenMode={isZenMode}
+                                setIsZenMode={setIsZenMode}
+                            />
+
                             <div className="mt-6">
-                                <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 text-white py-2 px-6 rounded-lg flex items-center gap-2 transition-all border border-gray-600">
+                                <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 text-white py-2 px-6 rounded-lg flex items-center justify-center gap-2 transition-all border border-gray-600 w-full">
                                     <Upload size={18} />
                                     <span>Upload MP3</span>
                                     <input
@@ -324,19 +350,6 @@ const App: React.FC = () => {
                                 </label>
                                 {isLoadingAudio && <p className="text-blue-400 text-xs mt-2">Processing Audio...</p>}
                             </div>
-
-                            <div className="mt-4">
-                                <label className="flex items-center justify-center gap-2 cursor-pointer text-gray-400 hover:text-white transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={isZenMode}
-                                        onChange={(e) => setIsZenMode(e.target.checked)}
-                                        className="w-4 h-4 rounded bg-gray-700 border-gray-600 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <span className="text-sm font-bold">ZEN MODE (No Fail)</span>
-                                </label>
-                            </div>
-
                         </div>
                     )}
 

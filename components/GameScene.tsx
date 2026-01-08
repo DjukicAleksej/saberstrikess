@@ -10,7 +10,7 @@ import { Environment, Grid, PerspectiveCamera, Stars } from '@react-three/drei';
 import * as THREE from 'three';
 import { EffectComposer, Bloom, Noise } from '@react-three/postprocessing';
 import { GameStatus, NoteData, HandPositions, COLORS, CutDirection } from '../types';
-import { PLAYER_Z, SPAWN_Z, MISS_Z, NOTE_SPEED, DIRECTION_VECTORS, NOTE_SIZE, LANE_X_POSITIONS, LAYER_Y_POSITIONS, SONG_BPM } from '../constants';
+import { PLAYER_Z, SPAWN_Z, MISS_Z, DIRECTION_VECTORS, NOTE_SIZE, LANE_X_POSITIONS, LAYER_Y_POSITIONS, SONG_BPM } from '../constants';
 import Note from './Note';
 import Saber from './Saber';
 
@@ -23,6 +23,7 @@ interface GameSceneProps {
   onNoteHit: (note: NoteData, goodCut: boolean) => void;
   onNoteMiss: (note: NoteData) => void;
   onSongEnd: () => void;
+  noteSpeed: number;
 }
 
 const BEAT_TIME = 60 / SONG_BPM;
@@ -35,7 +36,8 @@ const GameScene: React.FC<GameSceneProps> = ({
   chart,
   onNoteHit,
   onNoteMiss,
-  onSongEnd
+  onSongEnd,
+  noteSpeed
 }) => {
   // Local state for notes to trigger re-renders when they are hit/missed
   const [notesState, setNotesState] = useState<NoteData[]>(chart);
@@ -135,7 +137,7 @@ const GameScene: React.FC<GameSceneProps> = ({
 
     // 1. Spawn Notes
     // Look ahead by the time it takes for a note to travel from spawn to player
-    const spawnAheadTime = Math.abs(SPAWN_Z - PLAYER_Z) / NOTE_SPEED;
+    const spawnAheadTime = Math.abs(SPAWN_Z - PLAYER_Z) / noteSpeed;
 
     while (nextNoteIndexRef.current < notesState.length) {
       const nextNote = notesState[nextNoteIndexRef.current];
@@ -156,7 +158,7 @@ const GameScene: React.FC<GameSceneProps> = ({
 
       // Calculate current Z position
       const timeDiff = note.time - time;
-      const currentZ = PLAYER_Z - (timeDiff * NOTE_SPEED);
+      const currentZ = PLAYER_Z - (timeDiff * noteSpeed);
 
       // Miss check (passed player)
       if (currentZ > MISS_Z) {
@@ -264,7 +266,7 @@ const GameScene: React.FC<GameSceneProps> = ({
         <Note
           key={note.id}
           data={note}
-          zPos={PLAYER_Z - ((note.time - currentTime) * NOTE_SPEED)}
+          zPos={PLAYER_Z - ((note.time - currentTime) * noteSpeed)}
           currentTime={currentTime}
         />
       ))}
